@@ -31,12 +31,21 @@ def read_module(path: Path) -> str:
 
 def collect_modules() -> str:
     modules = []
+    allowed_roots = {"Core", "Components", "Effects", "Services"}
     for path in sorted(SRC_ROOT.rglob("*.lua")):
         if path == INPUT_FILE:
             continue
+
+        rel = path.relative_to(SRC_ROOT)
+        if rel.parts[0] not in allowed_roots:
+            continue
+
         module_id = module_name(path)
         body = read_module(path).rstrip()
-        indent_body = textwrap.indent(body, "    ")
+        stripped = body.lstrip()
+        if not stripped.startswith("function(require)"):
+            continue
+
         modules.append(f"internalModules[{module_id!r}] = {body}\n")
     return "\n".join(modules)
 
@@ -56,8 +65,8 @@ def build():
     OUTPUT_FILE.write_text(output_text, encoding="utf-8")
     print(f"Bundled library written to {OUTPUT_FILE}")
 
-    if DARKLUA_CONFIG.exists() and shutil.which("darklua"):
-        subprocess.run(["darklua", "process", str(OUTPUT_FILE), str(OUTPUT_FILE), "--config", str(DARKLUA_CONFIG)], check=True)
+    if shutil.which("darklua"):
+        subprocess.run(["darklua", "process", str(OUTPUT_FILE), str(OUTPUT_FILE), "--format", "readable"], check=True)
         print("Formatted library with Darklua")
 
 

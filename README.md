@@ -1,4 +1,5 @@
 # VlintUI
+### PLEASE IGNORE THE SOURCE CODE, I KNOW ITS A MESS BUT IT WORKS
 ```mermaid
 graph TD
     A[Source Code] --> B[Wally]
